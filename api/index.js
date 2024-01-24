@@ -141,6 +141,36 @@ app.get('/post/:id', async (req,res) => {
     const postDoc = await Post.findById(id).populate('author',['username']);
     res.json(postDoc);
 })
+app.delete('/post/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const postDoc = await Post.findById(id);
+
+        if (!postDoc) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Check if the logged-in user is the author of the post
+        const { token } = req.cookies;
+        jwt.verify(token, secret, {}, async (err, info) => {
+            if (err) throw err;
+
+            if (JSON.stringify(postDoc.author) !== JSON.stringify(info.id)) {
+                return res.status(403).json({ error: 'You are not the author of this post' });
+            }
+
+            // Delete the post
+            await Post.findByIdAndDelete(id);
+            res.json({ success: true });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 
 app.listen(4000, () => {
     connect(url);
