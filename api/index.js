@@ -16,6 +16,8 @@ const uploadMiddleware = multer({dest: 'uploads/'})
 const secret = 'dsfalkdfiesdffefkajfd';
 const salt = bcrypt.genSaltSync(10)
 
+const PORT = process.env.PORT || 4000;
+
 app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
 app.use(cookieParser());
@@ -27,6 +29,7 @@ const connect = async (url) => {
 }
 
 app.post('/register', async (req, res) => {
+    //get all data from body
     const { username, password } = req.body
     try {
         const userDoc = await User.create({ 
@@ -41,8 +44,11 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req,res) => {
+    //get all data from body
     const {username,password} = req.body;
+    // checking if user already exists
     const userDoc = await User.findOne({username});
+    //encrypt the password 
     const passOk = bcrypt.compareSync(password, userDoc.password);
     if(passOk){
         //logged in 
@@ -172,7 +178,7 @@ app.delete('/post/:id', async (req, res) => {
 
 
 
-app.listen(4000, () => {
+app.listen(PORT, () => {
     connect(url);
     console.log("server started");
 })
